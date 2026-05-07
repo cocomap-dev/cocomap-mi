@@ -257,8 +257,8 @@ with col_chat:
                             system_instruction=system_prompt,
                         )
                         
-                        # === 👇ここから追加・変更：自動リトライ機能 👇 ===
-                        max_retries = 3 # 最大3回まで自動でやり直す
+                        # === 👇ここから追加・変更：自動リトライ機能（強化版） 👇 ===
+                        max_retries = 5 # 粘り強く5回までやり直す
                         for attempt in range(max_retries):
                             try:
                                 response = client.models.generate_content(
@@ -272,9 +272,12 @@ with col_chat:
                                 # 503(混雑)や429(制限)のエラーだった場合
                                 if "503" in str(e) or "429" in str(e) or "UNAVAILABLE" in str(e):
                                     if attempt < max_retries - 1:
-                                        time.sleep(3) # 3秒待機して再チャレンジ
+                                        # 待機時間を徐々に長くする（3秒 → 6秒 → 9秒...）
+                                        wait_time = (attempt + 1) * 3 
+                                        st.toast(f"AIサーバーが混雑中です。{wait_time}秒後に自動で再接続します...（{attempt+1}/{max_retries}回目）")
+                                        time.sleep(wait_time)
                                         continue
-                                # それ以外の深刻なエラー、または3回やってもダメだった場合は諦める
+                                # 5回やってもダメだった場合のみ、最終的なエラーを画面に出す
                                 raise e
                         # === 👆ここまで 👆 ===
                         
