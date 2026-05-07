@@ -16,12 +16,19 @@ from streamlit_mic_recorder import speech_to_text
 st.set_page_config(layout="wide", page_title="Takumi's Journey - トヨタ版こことり")
 
 # ==========================================
-# 1. APIキーと設定
+# 1. APIキーと設定（画面入力方式）
 # ==========================================
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key=GEMINI_API_KEY)
+st.sidebar.title("🔑 APIキー設定")
+user_api_key = st.sidebar.text_input("Gemini APIキーを入力してください", type="password")
 
-SESSION_TIME_LIMIT = 6 * 60 
+if not user_api_key:
+    st.info("👈 サイドバーにAPIキーを入力すると、アプリが起動します。")
+    st.stop() # キーが入力されるまでここで処理を一時停止します
+
+# 入力されたAPIキーを使ってAIを初期化
+client = genai.Client(api_key=user_api_key)
+
+SESSION_TIME_LIMIT = 5 * 60 
 
 def reset_session():
     st.session_state.clear()
