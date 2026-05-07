@@ -256,11 +256,27 @@ with col_chat:
                             response_mime_type="application/json",
                             system_instruction=system_prompt,
                         )
-                        response = client.models.generate_content(
-                            model="gemini-2.5-flash",
-                            contents=full_prompt,
-                            config=config
-                        )
+                        
+                        # === 👇ここから追加・変更：自動リトライ機能 👇 ===
+                        max_retries = 3 # 最大3回まで自動でやり直す
+                        for attempt in range(max_retries):
+                            try:
+                                response = client.models.generate_content(
+                                    model="gemini-2.5-flash",
+                                    contents=full_prompt,
+                                    config=config
+                                )
+                                break # 通信に成功したら、このやり直しループから抜け出す
+                                
+                            except Exception as e:
+                                # 503(混雑)や429(制限)のエラーだった場合
+                                if "503" in str(e) or "429" in str(e) or "UNAVAILABLE" in str(e):
+                                    if attempt < max_retries - 1:
+                                        time.sleep(3) # 3秒待機して再チャレンジ
+                                        continue
+                                # それ以外の深刻なエラー、または3回やってもダメだった場合は諦める
+                                raise e
+                        # === 👆ここまで 👆 ===
                         
                         result = json.loads(response.text)
                         
