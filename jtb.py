@@ -24,10 +24,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 1. APIキーと設定（最新のGemini SDKに変更！）
+# 1. APIキーと設定（画面入力方式）
 # ==========================================
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key=GEMINI_API_KEY)
+st.sidebar.title("🔑 APIキー設定")
+user_api_key = st.sidebar.text_input("Gemini APIキーを入力してください", type="password")
+
+if not user_api_key:
+    st.info("👈 サイドバーにAPIキーを入力すると、アプリが起動します。")
+    st.stop() # キーが入力されるまでここで処理を一時停止します
+
+# 入力されたAPIキーを使ってAIを初期化
+client = genai.Client(api_key=user_api_key)
 
 SESSION_TIME_LIMIT = 5 * 60 # 5分間（300秒）
 
